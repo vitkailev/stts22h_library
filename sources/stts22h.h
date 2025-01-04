@@ -24,7 +24,7 @@ enum STTS22H_AVG {
 };
 
 typedef union {
-    struct ControlRegister {
+    struct STTS22H_ControlRegister {
         unsigned one_shot: 1; // 1 - a new one-shot temperature acquisition is executed
         unsigned time_out_dis: 1; // 1 - the timeout function of SMBus is disabled
         unsigned freerun: 1; // enables freerun mode
@@ -34,17 +34,17 @@ typedef union {
         unsigned low_odr_start: 1; // enables 1Hz ODR operating mode
     } fields;
     uint8_t full;
-} STTS22H_ControlReg_Def;
+} STTS22H_Control_Def;
 
 typedef union {
-    struct StatusRegister {
+    struct STTS22H_StatusRegister {
         unsigned busy: 1; // 1 - the conversion is in progress
         unsigned over_thh: 1; // 1 - high limit temperature exceeded. The bit is automatically reset to 0 upon reading the STATUS register
         unsigned under_thl: 1; // 1 - low limit temperature exceeded. The bit is automatically reset to 0 upon reading the STATUS register
         unsigned : 5;
     } fields;
     uint8_t full;
-} STTS22H_StatusReg_Def;
+} STTS22H_Status_Def;
 
 typedef struct {
     bool isInit;
@@ -55,8 +55,8 @@ typedef struct {
     uint8_t regAddr;
 
     uint8_t dataSize; // bytes
-    STTS22H_ControlReg_Def settings;
-    STTS22H_StatusReg_Def status;
+    STTS22H_Control_Def settings;
+    STTS22H_Status_Def status;
     float temp; // C
 
     uint8_t devAddr;
