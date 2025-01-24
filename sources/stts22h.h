@@ -11,9 +11,8 @@ enum STTS22H_Errors {
     STTS22H_SUCCESS = 0,
 
     STTS22H_NOT_INIT = -I2C_NUMBER_ERRORS - 1,
-    STTS22H_DISCONNECTED = -I2C_NUMBER_ERRORS - 2,
-    STTS22H_WRONG_DATA = -I2C_NUMBER_ERRORS - 3,
-    STTS22H_BUSY = -I2C_NUMBER_ERRORS - 4,
+    STTS22H_WRONG_DATA = -I2C_NUMBER_ERRORS - 2,
+    STTS22H_BUSY = -I2C_NUMBER_ERRORS - 3,
 };
 
 enum STTS22H_AVG {
@@ -66,6 +65,8 @@ typedef struct {
 int STTS22H_init(STTS22H_Def *stts, I2CDef *i2c, uint8_t addr);
 
 int STTS22H_checkConnection(STTS22H_Def *stts);
+
+bool STTS22H_isConnected(const STTS22H_Def *stts);
 
 int STTS22H_setting(STTS22H_Def *stts, uint8_t controlReg);
 

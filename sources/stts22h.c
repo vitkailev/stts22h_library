@@ -22,15 +22,6 @@ static bool isInit(const STTS22H_Def *stts) {
 }
 
 /**
- * @brief Check, that the temperature sensor is connected to MCU (I2C interface)
- * @param stts is the STTS22H data structure
- * @return True - there is a connection between MCU and the sensor, otherwise - False
- */
-static bool isConnected(const STTS22H_Def *stts) {
-    return stts->isConnected;
-}
-
-/**
  * @brief Check, that the temperature sensor is reading register values
  * @param stts is the STTS22H data structure
  * @return True - is reading, otherwise - False
@@ -79,6 +70,15 @@ int STTS22H_checkConnection(STTS22H_Def *stts) {
 }
 
 /**
+ * @brief Check, that the temperature sensor is connected to MCU (I2C interface)
+ * @param stts is the STTS22H data structure
+ * @return True - there is a connection between MCU and the sensor, otherwise - False
+ */
+bool STTS22H_isConnected(const STTS22H_Def *stts) {
+    return stts->isConnected;
+}
+
+/**
  * @brief The temperature sensor setting
  * @param stts is the STTS22H data structure
  * @param controlReg is the control register value (STTS22H_ControlReg_Def.full)
@@ -87,8 +87,6 @@ int STTS22H_checkConnection(STTS22H_Def *stts) {
 int STTS22H_setting(STTS22H_Def *stts, uint8_t controlReg) {
     if (!isInit(stts))
         return STTS22H_NOT_INIT;
-    if (!isConnected(stts))
-        return STTS22H_DISCONNECTED;
 
     uint8_t data[2] = {0};
     data[0] = CTRL_ADDR;
@@ -125,8 +123,6 @@ static uint8_t calculateThreshold(float value) {
 int STTS22H_setLimits(STTS22H_Def *stts, float minTemp, float maxTemp, bool isSetLimits) {
     if (!isInit(stts))
         return STTS22H_NOT_INIT;
-    if (!isConnected(stts))
-        return STTS22H_DISCONNECTED;
 
     // Datasheet, DS12606, Rev7, Aug 2022, page 18
     if (minTemp < -39.5f || maxTemp > 122.5f)
@@ -150,8 +146,6 @@ int STTS22H_setLimits(STTS22H_Def *stts, float minTemp, float maxTemp, bool isSe
 int STTS22H_measure(STTS22H_Def *stts) {
     if (!isInit(stts))
         return STTS22H_NOT_INIT;
-    if (!isConnected(stts))
-        return STTS22H_DISCONNECTED;
     if (isReading(stts))
         return STTS22H_BUSY;
 
@@ -236,12 +230,21 @@ void STTS22H_update(STTS22H_Def *stts) {
 
         if (!I2C_isFailed(stts->i2c)) {
             const uint8_t *data = (const uint8_t *) I2C_getReceivedData(stts->i2c);
-            if (isConnected(stts)) {
-                stts->status.full = data[0];
-                if (!stts->status.fields.busy)
-                    stts->temp = calculateTemp(data[2], data[1]);
-            } else {
-                stts->isConnected = (WHOAMI == *data);
+            switch (stts->regAddr) {
+                case WHOAMI_ADDR:
+                    stts->isConnected = (WHOAMI == *data);
+                    break;
+                case TEMP_H_LIMIT_ADDR:
+                    break;
+                case CTRL_ADDR:
+                    break;
+                case STATUS_ADDR:
+                    stts->status.full = data[0];
+                    if (!stts->status.fields.busy)
+                        stts->temp = calculateTemp(data[2], data[1]);
+                    break;
+                case TEMP_L_OUT_ADDR:
+                    break;
             }
         }
     } else {
